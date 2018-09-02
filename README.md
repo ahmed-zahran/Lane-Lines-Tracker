@@ -1,56 +1,62 @@
 # **Finding Lane Lines on the Road** 
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
 
-<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
+## Introduction
 
-Overview
----
-
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
-
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
-
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
-
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
+The main goal of this project is to detect and identify the lane lines with high accuracies for some real video streams. The challenges is to extract those lane lines and identify them without any external distortions from the surrounding. This project is programmed using Python and OpenCV library for Image processing and Computer vision. This document will describe the pipeline of the code implementation and will share some reflections on how it was successfully executed.
 
 
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
+### Reflection
 
-1. Describe the pipeline
+### 1. Pipeline Description. 
 
-2. Identify any shortcomings
+**Images Conversion from RGB to HLS**
 
-3. Suggest possible improvements
+The proposed pipeline in this work consists of 6 steps. First, the images were transformed from RGB to HLS to get all the colors with high Lightness (above 200) which means in the high brightness region such as the White lane lines. The Yellow lanes were however detected with less Lightness but Hue values in the range between 10 and 40 and Lightness above 100. The two image masks for the white and yellow colors are then added together (Bitwise OR) and the "select_white_yellow" function returns the image with only both colors.
 
-We encourage using images in your writeup to demonstrate how your pipeline works.  
+*Figure 1: White and Yellow Lane Colors in HLS*
 
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
-
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
+![White_Yellow_Lanes](./writeup_images/White_Yellow_Lane_HSL.png "White Lane")
 
 
-The Project
----
+**Modifications on draw_lines() function**
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
+In fact we assume that the camera angle and optical zoom is fixed, hence we predict to have the lane lines drawn from the Hough transform within a limited predictable area and slopes. The "draw_lines(...)" function takes the image, the Hough lines, Result Line Color and thickness as its parameters. First, we get the resolution of the image first (image.shape), then for each line with (x1,y1,x2,y2) the slope is calculated and checked. If the slope is greater than Zero and x1 & x2 are greater than half the X-Resolution (image width/2), then the points are added to the Right Lane Rx and Ry data arrays, else if slope is less than zero and x1 & x2 are less than half the resolution, then the points are added to the Left Lane Lx and Ly data arrays. Then the function "cv2.polyfit(...)" is used to fit the Right and Left Lane lines respectively and draw only a first degree order line for each lane using the function "cv2.line(...)".
 
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://classroom.udacity.com/nanodegrees/nd013/parts/fbf77062-5703-404e-b60c-95b78b2f3f9e/modules/83ec35ee-1e02-48a5-bdb7-d244bd47c2dc/lessons/8c82408b-a217-4d09-b81d-1bda4c6380ef/concepts/4f1870e0-3849-43e4-b670-12e6f2d4b7a7) if you haven't already.
+*Example*
 
-**Step 2:** Open the code in a Jupyter Notebook
+Lxdata = [290, 451, 281, 333, 294, 452, 281, 450, 289, 419, 337, 416, 292, 452]
 
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out [Udacity's free course on Anaconda and Jupyter Notebooks](https://classroom.udacity.com/courses/ud1111) to get started.
+Lydata = [462, 332, 462, 419, 461, 333, 460, 332, 462, 357, 416, 356, 462, 332]
 
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
+Rxdata = [530, 878, 532, 897, 530, 897, 530, 877, 609, 777]
 
-`> jupyter notebook`
+Rydata = [337, 538, 336, 538, 336, 539, 338, 538, 382, 479]
 
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
+**Main Running Code Implementation**
 
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
+1. Image is transformed from RGB to the HLS, then the Yellow and White image masks are added together (Bitwise OR).
+![Bitwise_W&Y_Colors](./writeup_images/Bitwise_W_Y.png "Bitwise_W&Y Image")
+2. Grayscale conversion
+3. Gaussian Smoothing (Blurring image before applying the Canny edge detector filter)
+4. Apply the Canny Edge Detector filter with Low and High Thresholds of 60 and 100 respectively.
+![Canny](./writeup_images/Canny.png "Canny")
+5. Apply the Region of Interest function with the vertices of a Polygon-shaped mask to define the area of the lanes in the image.
+6. Apply the Hough Transform on the resulted image (Edge detected image with ROI) to get the possible lines.
+7. Apply the draw_lines(..) function to draw a final averaged thick line for each lane from the Hough lines.
+8. Apply the weighted_img() function to make the final lines semi transparent over the original photo.
+![Final](./writeup_images/Result.png "Final Image")
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+
+
+
+### 2. Potential shortcomings
+
+The transformation from the RGB to the HLS domain, then bitwising the White and yellow images made a huge and extremely effective improvement to the detection of the lane lined with a huge accuracy of around 100% on all the given samples including the Challenge problem. However, this project still assumes that there are no obstacles (i.e. other cars) close to the vehicle's front view which would cause some occulusions. Also it was assumed that the weather conditions are clear. Of course, the HLS domain overcame the challenge of different brightness due to shadows or different weather conditions which made the implementation very robust.
+
+A possible shortcoming would appear with more curvy lane lines as well, which would make the hough transform with the given set parameters produce less lines or possibly would not be identified as lines. 
+
+
+### 3. Suggest possible improvements to your pipeline
+
+A possible improvement for the curvy lane lines would be to use higher order fitting polynomial to follow the lane curvature, but this would be a challenge as well since it will consume more computational time.
 
