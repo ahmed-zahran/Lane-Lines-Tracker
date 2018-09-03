@@ -15,7 +15,7 @@ The proposed pipeline in this work consists of 6 steps. First, the images were t
 
 *Figure 1: White and Yellow Lane Colors in HLS*
 
-![White_Yellow_Lanes](./writeup_images/WYLanes_HSL.png "White & Yellow Lanes")
+![White_Yellow_Lanes](./writeup_images/WYLanes_HSL.png "White_Yellow Lanes")
 
 
 **Modifications on draw_lines() function**
