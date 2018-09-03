@@ -13,9 +13,13 @@ The main goal of this project is to detect and identify the lane lines with high
 
 The proposed pipeline in this work consists of 6 steps. First, the images were transformed from RGB to HLS to get all the colors with high Lightness (above 200) which means in the high brightness region such as the White lane lines. The Yellow lanes were however detected with less Lightness but Hue values in the range between 10 and 40 and Lightness above 100. The two image masks for the white and yellow colors are then added together (Bitwise OR) and the "select_white_yellow" function returns the image with only both colors.
 
-*Figure 1: White and Yellow Lane Colors in HLS*
+*Figure 1: White Lane Color in HLS*
 
-![White_Yellow_Lanes](./writeup_images/WYLanes_HSL.png "White_Yellow Lanes")
+![White_Lane](./writeup_images/White_Lane_HSL.png "White Lane")
+
+*Figure 2: Yellow Lane Color in HLS*
+
+![Yellow_Lane](./writeup_images/Yellow_Lane_HSL.png "Yellow Lane")
 
 
 **Modifications on draw_lines() function**
